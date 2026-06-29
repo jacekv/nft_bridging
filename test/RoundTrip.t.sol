@@ -21,19 +21,19 @@ contract RoundTripTest is Test {
     MockRouter public destRouter;
 
     uint64 constant SOURCE_CHAIN = 1;
-    uint64 constant DEST_CHAIN   = 2;
+    uint64 constant DEST_CHAIN = 2;
 
     uint256 tokenId = 0;
     address user = makeAddr("user");
 
     function setUp() public {
         sourceRouter = new MockRouter();
-        destRouter   = new MockRouter();
+        destRouter = new MockRouter();
 
         vm.startPrank(user);
         providerNft = new ProviderNFT("AwesomeNFT", "ANFT");
-        vault       = new NFTVault(address(sourceRouter), address(providerNft));
-        wrappedNft  = new WrappedNFT("WrappedAwesomeNFT", "WANFT", address(destRouter));
+        vault = new NFTVault(address(sourceRouter), address(providerNft));
+        wrappedNft = new WrappedNFT("WrappedAwesomeNFT", "WANFT", address(destRouter));
         vm.stopPrank();
 
         // source chain: vault accepts messages from wrappedNft on DEST_CHAIN

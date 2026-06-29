@@ -13,7 +13,6 @@ import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {IAny2EVMMessageReceiver} from "@chainlink/contracts-ccip/contracts/interfaces/IAny2EVMMessageReceiver.sol";
 
 contract WrappedNFT is ERC721, OwnerIsCreator, CCIPReceiver {
-
     error DestinationChainNotAllowlisted(uint64 destinationChainSelector);
     error SourceChainNotAllowlisted(uint64 sourceChainSelector);
     error SenderNotAllowlisted(address sender);
@@ -30,11 +29,17 @@ contract WrappedNFT is ERC721, OwnerIsCreator, CCIPReceiver {
     // tracks which vault on the source chain locked each token
     mapping(uint256 => address) public tokenSourceVault;
 
-    event MintMessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sourceVault, uint256 tokenId, address owner);
-    event BurnMessageSent(bytes32 messageId, uint64 destinationChainSelector, address vault, uint256 tokenId, address recipient);
+    event MintMessageReceived(
+        bytes32 messageId, uint64 sourceChainSelector, address sourceVault, uint256 tokenId, address owner
+    );
+    event BurnMessageSent(
+        bytes32 messageId, uint64 destinationChainSelector, address vault, uint256 tokenId, address recipient
+    );
 
-    constructor(string memory _name, string memory _symbol, address _router) ERC721(_name, _symbol) CCIPReceiver(_router) {
-    }
+    constructor(string memory _name, string memory _symbol, address _router)
+        ERC721(_name, _symbol)
+        CCIPReceiver(_router)
+    {}
 
     modifier onlyAllowlistedDestinationChain(uint64 _destinationChainSelector) {
         if (!allowlistedDestinationChains[_destinationChainSelector]) {
@@ -68,33 +73,18 @@ contract WrappedNFT is ERC721, OwnerIsCreator, CCIPReceiver {
         allowlistedSenders[_sender] = allowed;
     }
 
-    function _ccipReceive(
-        Client.Any2EVMMessage memory any2EvmMessage
-    )
+    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage)
         internal
         override
-        onlyAllowlisted(
-            any2EvmMessage.sourceChainSelector,
-            abi.decode(any2EvmMessage.sender, (address))
-        )
+        onlyAllowlisted(any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)))
     {
         address sourceVault = abi.decode(any2EvmMessage.sender, (address));
 
-        (
-            string memory tokenUri,
-            uint256 tokenId,
-            address originalOwner,
-        ) = abi.decode(
-            any2EvmMessage.data,
-            (string, uint256, address, address)
-        );
+        (string memory tokenUri, uint256 tokenId, address originalOwner,) =
+            abi.decode(any2EvmMessage.data, (string, uint256, address, address));
 
         emit MintMessageReceived(
-            any2EvmMessage.messageId,
-            any2EvmMessage.sourceChainSelector,
-            sourceVault,
-            tokenId,
-            originalOwner
+            any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, sourceVault, tokenId, originalOwner
         );
 
         _mint(originalOwner, tokenId);
@@ -102,11 +92,7 @@ contract WrappedNFT is ERC721, OwnerIsCreator, CCIPReceiver {
         tokenSourceVault[tokenId] = sourceVault;
     }
 
-    function burn(
-        uint256 tokenId,
-        address recipient,
-        uint64 destinationChainSelector
-    )
+    function burn(uint256 tokenId, address recipient, uint64 destinationChainSelector)
         external
         payable
         onlyAllowlistedDestinationChain(destinationChainSelector)
@@ -157,19 +143,9 @@ contract WrappedNFT is ERC721, OwnerIsCreator, CCIPReceiver {
         return tokenUriMapping[tokenId];
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    )
-        public
-        pure
-        virtual
-        override(CCIPReceiver, ERC721)
-        returns (bool)
-    {
-        return
-            interfaceId == type(IERC165).interfaceId ||
-            interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(IERC721Metadata).interfaceId ||
-            interfaceId == type(IAny2EVMMessageReceiver).interfaceId;
+    function supportsInterface(bytes4 interfaceId) public pure virtual override(CCIPReceiver, ERC721) returns (bool) {
+        return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC721).interfaceId
+            || interfaceId == type(IERC721Metadata).interfaceId
+            || interfaceId == type(IAny2EVMMessageReceiver).interfaceId;
     }
 }

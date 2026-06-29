@@ -18,11 +18,7 @@ contract DeployDest is Script {
     function run() external {
         vm.startBroadcast();
 
-        WrappedNFT wrappedNft = new WrappedNFT(
-            "WrappedAwesomeNFT",
-            "WANFT",
-            CCIPConfig.OP_SEPOLIA_ROUTER
-        );
+        WrappedNFT wrappedNft = new WrappedNFT("WrappedAwesomeNFT", "WANFT", CCIPConfig.OP_SEPOLIA_ROUTER);
         console.log("WrappedNFT:", address(wrappedNft));
 
         vm.stopBroadcast();

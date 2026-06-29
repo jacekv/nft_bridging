@@ -27,10 +27,7 @@ contract NFTTransferTest is Test {
 
         vm.startPrank(user);
         providerNft = new ProviderNFT(nftName, nftSymbol);
-        nftVault = new NFTVault(
-            address(mockRouter),
-            address(providerNft)
-        );
+        nftVault = new NFTVault(address(mockRouter), address(providerNft));
         vm.stopPrank();
 
         vm.deal(user, 10 ether);
@@ -38,53 +35,28 @@ contract NFTTransferTest is Test {
 
     function setAllowlist(uint64 destinationChainId) private {
         vm.prank(user);
-        nftVault.allowlistSourceChain(
-            destinationChainId,
-            true
-        );
+        nftVault.allowlistSourceChain(destinationChainId, true);
 
         vm.prank(user);
-        nftVault.allowlistDestinationChain(
-            destinationChainId,
-            true
-        );
+        nftVault.allowlistDestinationChain(destinationChainId, true);
     }
 
     function test_correctOwner() public {
         vm.prank(user);
-        assert (providerNft.ownerOf(firstTokenId) == user);
+        assert(providerNft.ownerOf(firstTokenId) == user);
     }
 
     function test_destinationChainNotSupported() public {
         uint64 destinationChainId = 0;
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                NFTVault.DestinationChainNotAllowlisted.selector,
-                destinationChainId
-            )
-        );
-        nftVault.deposit(
-            firstTokenId,
-            address(0),
-            destinationChainId
-        );
+        vm.expectRevert(abi.encodeWithSelector(NFTVault.DestinationChainNotAllowlisted.selector, destinationChainId));
+        nftVault.deposit(firstTokenId, address(0), destinationChainId);
     }
 
     function test_notOwner() public {
         uint64 destinationChainId = 0;
         setAllowlist(destinationChainId);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                NFTVault.NotOwner.selector,
-                address(this),
-                firstTokenId
-            )
-        );
-        nftVault.deposit(
-            firstTokenId,
-            address(0xdead),
-            0
-        );
+        vm.expectRevert(abi.encodeWithSelector(NFTVault.NotOwner.selector, address(this), firstTokenId));
+        nftVault.deposit(firstTokenId, address(0xdead), 0);
     }
 
     function test_notApproved() public {
@@ -93,18 +65,9 @@ contract NFTTransferTest is Test {
 
         vm.prank(user);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                NFTVault.NotApproved.selector,
-                firstTokenId,
-                address(nftVault),
-                address(providerNft)
-            )
+            abi.encodeWithSelector(NFTVault.NotApproved.selector, firstTokenId, address(nftVault), address(providerNft))
         );
-        nftVault.deposit(
-            firstTokenId,
-            address(0xdead),
-            0
-        );
+        nftVault.deposit(firstTokenId, address(0xdead), 0);
     }
 
     function test_notEnoughBalance() public {
@@ -115,18 +78,8 @@ contract NFTTransferTest is Test {
         providerNft.approve(address(nftVault), firstTokenId);
 
         vm.prank(user);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                NFTVault.NotEnoughBalance.selector,
-                0,
-                0
-            )
-        );
-        nftVault.deposit(
-            firstTokenId,
-            address(0xdead),
-            0
-        );
+        vm.expectRevert(abi.encodeWithSelector(NFTVault.NotEnoughBalance.selector, 0, 0));
+        nftVault.deposit(firstTokenId, address(0xdead), 0);
     }
 
     function test_successfullyDeposited() public {
@@ -140,31 +93,21 @@ contract NFTTransferTest is Test {
         providerNft.approve(address(nftVault), firstTokenId);
 
         string memory tokenUri = providerNft.tokenURI(firstTokenId);
-    
-        bytes memory payload = abi.encode(
-            tokenUri,
-            firstTokenId,
-            address(user),
-            address(providerNft)
-        );
+
+        bytes memory payload = abi.encode(tokenUri, firstTokenId, address(user), address(providerNft));
 
         // Create an EVM2AnyMessage struct in memory with necessary information for sending a cross-chain message
         Client.EVM2AnyMessage memory evm2AnyMessage = nftVault.buildCCIPMessage(receiver, payload, address(0));
         mockRouter.setFee(1337);
         uint256 fees = nftVault.getCCIPMessageFee(destinationChainSelector, evm2AnyMessage);
 
-
         uint256 userBalanceBefore = user.balance;
         vm.prank(user);
-        nftVault.deposit{value: fees + 1 ether}(
-            firstTokenId,
-            receiver,
-            destinationChainSelector
-        );
+        nftVault.deposit{value: fees + 1 ether}(firstTokenId, receiver, destinationChainSelector);
 
         assertEq(user.balance, userBalanceBefore - fees);
         assertEq(providerNft.ownerOf(firstTokenId), address(nftVault));
 
-        assert (providerNft.ownerOf(firstTokenId) == address(nftVault));
+        assert(providerNft.ownerOf(firstTokenId) == address(nftVault));
     }
 }

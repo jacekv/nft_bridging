@@ -46,7 +46,11 @@ contract NFTVaultUnlockTest is Test {
         vm.stopPrank();
     }
 
-    function _buildBurnMessage(uint256 _tokenId, address _recipient) private view returns (Client.Any2EVMMessage memory) {
+    function _buildBurnMessage(uint256 _tokenId, address _recipient)
+        private
+        view
+        returns (Client.Any2EVMMessage memory)
+    {
         bytes memory payload = abi.encode(_tokenId, _recipient);
 
         return Client.Any2EVMMessage({
@@ -79,9 +83,7 @@ contract NFTVaultUnlockTest is Test {
         });
 
         vm.prank(address(mockRouter));
-        vm.expectRevert(
-            abi.encodeWithSelector(NFTVault.SourceChainNotAllowlisted.selector, badChain)
-        );
+        vm.expectRevert(abi.encodeWithSelector(NFTVault.SourceChainNotAllowlisted.selector, badChain));
         nftVault.ccipReceive(msg_);
     }
 
@@ -97,9 +99,7 @@ contract NFTVaultUnlockTest is Test {
         });
 
         vm.prank(address(mockRouter));
-        vm.expectRevert(
-            abi.encodeWithSelector(NFTVault.SenderNotAllowlisted.selector, badSender)
-        );
+        vm.expectRevert(abi.encodeWithSelector(NFTVault.SenderNotAllowlisted.selector, badSender));
         nftVault.ccipReceive(msg_);
     }
 }

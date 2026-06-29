@@ -18,17 +18,16 @@ contract MockRouter is IRouterClient {
         fee = _fee;
     }
 
-    function getFee(
-        uint64,
-        Client.EVM2AnyMessage calldata
-    ) external view override returns (uint256) {
+    function getFee(uint64, Client.EVM2AnyMessage calldata) external view override returns (uint256) {
         return fee;
     }
 
-    function ccipSend(
-        uint64 destinationChainSelector,
-        Client.EVM2AnyMessage calldata message
-    ) external payable override returns (bytes32) {
+    function ccipSend(uint64 destinationChainSelector, Client.EVM2AnyMessage calldata message)
+        external
+        payable
+        override
+        returns (bytes32)
+    {
         lastDestinationChainSelector = destinationChainSelector;
         lastData = message.data;
         lastReceiver = message.receiver;
@@ -37,15 +36,11 @@ contract MockRouter is IRouterClient {
         return MOCK_MESSAGE_ID;
     }
 
-    function isChainSupported(
-        uint64
-    ) external pure override returns (bool) {
+    function isChainSupported(uint64) external pure override returns (bool) {
         return true;
     }
 
-    function getSupportedTokens(
-        uint64
-    ) external pure returns (address[] memory tokens) {
+    function getSupportedTokens(uint64) external pure returns (address[] memory tokens) {
         return new address[](0);
     }
 }

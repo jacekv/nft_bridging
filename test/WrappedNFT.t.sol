@@ -68,12 +68,7 @@ contract WrappedNFTTest is Test {
 
     function test_sourceChainNotAllowlisted() public {
         vm.prank(address(mockRouter));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                WrappedNFT.SourceChainNotAllowlisted.selector,
-                sourceChainSelector
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(WrappedNFT.SourceChainNotAllowlisted.selector, sourceChainSelector));
         wrappedNft.ccipReceive(_buildMessage());
     }
 
@@ -82,12 +77,7 @@ contract WrappedNFTTest is Test {
         wrappedNft.allowlistSourceChain(sourceChainSelector, true);
 
         vm.prank(address(mockRouter));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                WrappedNFT.SenderNotAllowlisted.selector,
-                sourceVault
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(WrappedNFT.SenderNotAllowlisted.selector, sourceVault));
         wrappedNft.ccipReceive(_buildMessage());
     }
 
@@ -95,13 +85,7 @@ contract WrappedNFTTest is Test {
         _allowlist();
 
         vm.expectEmit(false, false, false, true, address(wrappedNft));
-        emit WrappedNFT.MintMessageReceived(
-            keccak256("test"),
-            sourceChainSelector,
-            sourceVault,
-            tokenId,
-            originalOwner
-        );
+        emit WrappedNFT.MintMessageReceived(keccak256("test"), sourceChainSelector, sourceVault, tokenId, originalOwner);
 
         vm.prank(address(mockRouter));
         wrappedNft.ccipReceive(_buildMessage());
@@ -204,9 +188,7 @@ contract WrappedNFTTest is Test {
         vm.deal(notOwner, 1 ether);
 
         vm.prank(notOwner);
-        vm.expectRevert(
-            abi.encodeWithSelector(WrappedNFT.NotOwner.selector, notOwner, tokenId)
-        );
+        vm.expectRevert(abi.encodeWithSelector(WrappedNFT.NotOwner.selector, notOwner, tokenId));
         wrappedNft.burn{value: 1 ether}(tokenId, notOwner, destChain);
     }
 
@@ -217,9 +199,7 @@ contract WrappedNFTTest is Test {
         vm.deal(originalOwner, 1 ether);
 
         vm.prank(originalOwner);
-        vm.expectRevert(
-            abi.encodeWithSelector(WrappedNFT.DestinationChainNotAllowlisted.selector, destChain)
-        );
+        vm.expectRevert(abi.encodeWithSelector(WrappedNFT.DestinationChainNotAllowlisted.selector, destChain));
         wrappedNft.burn{value: 1 ether}(tokenId, originalOwner, destChain);
     }
 
@@ -233,9 +213,7 @@ contract WrappedNFTTest is Test {
         vm.deal(originalOwner, burnFee - 1);
 
         vm.prank(originalOwner);
-        vm.expectRevert(
-            abi.encodeWithSelector(WrappedNFT.NotEnoughBalance.selector, burnFee - 1, burnFee)
-        );
+        vm.expectRevert(abi.encodeWithSelector(WrappedNFT.NotEnoughBalance.selector, burnFee - 1, burnFee));
         wrappedNft.burn{value: burnFee - 1}(tokenId, originalOwner, destChain);
     }
 
@@ -250,11 +228,7 @@ contract WrappedNFTTest is Test {
 
         vm.expectEmit(true, true, true, true, address(wrappedNft));
         emit WrappedNFT.BurnMessageSent(
-            MockRouter(address(mockRouter)).MOCK_MESSAGE_ID(),
-            destChain,
-            sourceVault,
-            tokenId,
-            originalOwner
+            MockRouter(address(mockRouter)).MOCK_MESSAGE_ID(), destChain, sourceVault, tokenId, originalOwner
         );
 
         vm.prank(originalOwner);
